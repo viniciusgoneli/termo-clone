@@ -1,0 +1,27 @@
+.container {
+    width: 100%;
+}
+
+.container form {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.inputWrapper{
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    height: 60px;
+    width: 60px;
+    background-color: red;
+    border-radius: 10px;
+}
+
+.inputWrapper input {
+    all: unset;
+    text-align: center;
+    font-size: 36px;
+    width: 100%;
+    text-transform: uppercase;
+}
