@@ -2,11 +2,12 @@ import Head from "next/head";
 import Image from "next/image";
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import Input from "../components/FieldsRow";
-import InputsRows from "../components/FieldsRowsContainer";
-import InputsBlock from "../components/FieldsRowsContainer";
+import InputsRows from "../components/FieldsRowsGroup";
+import InputsBlock from "../components/FieldsRowsGroup";
 import styles from "../styles/Home.module.css";
-import FieldsRows from "../components/FieldsRowsContainer";
-import FieldsRowsContainer from "../components/FieldsRowsContainer";
+import FieldsRows from "../components/FieldsRowsGroup";
+import FieldsRowsContainer from "../components/FieldsRowsGroup";
+import FieldsRowsGroup from "../components/FieldsRowsGroup";
 
 export interface FieldValue {
   backgroundColor: string;
@@ -42,7 +43,10 @@ export default function Home() {
       getFieldsValuesCheckedUsingRightWord(word);
 
     const fieldsValuesWithRemainigLettersChecked =
-      getFieldsValuesWithRemainingLettersChecked(word, fieldsValuesWithRightAndWrongLettersChecked);
+      getFieldsValuesWithRemainingLettersChecked(
+        word,
+        fieldsValuesWithRightAndWrongLettersChecked
+      );
 
     setFieldsValues(fieldsValuesWithRemainigLettersChecked);
   }
@@ -58,7 +62,10 @@ export default function Home() {
     });
   }
 
-  function getFieldsValuesWithRemainingLettersChecked(typedWord: string, fieldsValues: Array<FieldValue>) {
+  function getFieldsValuesWithRemainingLettersChecked(
+    typedWord: string,
+    fieldsValues: Array<FieldValue>
+  ) {
     return fieldsValues.map((v, i) => {
       if (rightWordWithoutUsedLetters.current?.includes(typedWord[i])) {
         return { backgroundColor: "#ffd249", value: v.value };
@@ -82,8 +89,8 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <h1 className={styles.title}>TERMO</h1>
-      <FieldsRowsContainer
-        currentRow={currentInputRow}
+      <FieldsRowsGroup
+        currentRowIndex={currentInputRow}
         values={fieldsValues}
         onChangeFieldValue={setFieldsValues}
         fieldsPerRow={rightWord.length}

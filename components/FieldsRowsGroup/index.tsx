@@ -6,32 +6,34 @@ import Input from "../FieldsRow";
 interface InputsBlockProps {
   numOfRows: number;
   values: Array<FieldValue>;
-  currentRow: number;
+  currentRowIndex: number;
   onChangeFieldValue: (values: Array<FieldValue>) => void;
   fieldsPerRow: number;
 }
 
-export default function FieldsRowsContainer({
+export default function FieldsRowsGroup({
   numOfRows,
   values,
   onChangeFieldValue,
-  currentRow,
-  fieldsPerRow
+  currentRowIndex,
+  fieldsPerRow,
 }: InputsBlockProps) {
-
-  const triesArr = useMemo(() => new Array(numOfRows).fill(null), [numOfRows]);
+  const numOfRowsArr = useMemo(
+    () => new Array(numOfRows).fill(null),
+    [numOfRows]
+  );
 
   return (
     <div>
-      {triesArr.map((_, index) => {
+      {numOfRowsArr.map((_, index) => {
         return (
           <FieldsRow
-            disabled={currentRow !== index}
             key={index}
-            values={currentRow === index ? values : []}
+            disabled={currentRowIndex !== index}
+            values={currentRowIndex === index ? values : []}
             onChangeValue={onChangeFieldValue}
             numOfFields={fieldsPerRow}
-            currentInput={currentRow}
+            currentRowIndex={currentRowIndex}
             rowIndex={index}
           />
         );
