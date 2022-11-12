@@ -34,3 +34,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# other
+./services/data/ptbr-words.txt
+./services/data/automatization.js

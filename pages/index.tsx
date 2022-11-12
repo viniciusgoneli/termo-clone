@@ -1,13 +1,8 @@
 import Head from "next/head";
-import Image from "next/image";
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
-import Input from "../components/FieldsRow";
-import InputsRows from "../components/FieldsRowsGroup";
-import InputsBlock from "../components/FieldsRowsGroup";
+import { useEffect, useRef, useState } from "react";
 import styles from "../styles/Home.module.css";
-import FieldsRows from "../components/FieldsRowsGroup";
-import FieldsRowsContainer from "../components/FieldsRowsGroup";
 import FieldsRowsGroup from "../components/FieldsRowsGroup";
+import { words } from "../services/data/ptbr-words"
 
 export interface FieldValue {
   backgroundColor: string;
@@ -15,18 +10,23 @@ export interface FieldValue {
 }
 
 export default function Home() {
-  const rightWord = "ARARA";
+  const DEFAULT_FIELD_COLOR = "gray";
+  const RIGHT_FIELD_COLOR = "#6aa84f";
+  const WRONG_FIELD_COLOR = "#bf2d23";
+  const INCLUDES_LETTER_COLOR = "#ffd249";
+
+  const [rightWord, setRightWord] = useState("")
 
   const initialFieldValues = new Array(rightWord.length).fill(null).map((_) => {
-    return { backgroundColor: "gray", value: "" };
+    return { backgroundColor: DEFAULT_FIELD_COLOR, value: "" };
   });
 
   const [fieldsValues, setFieldsValues] =
-    useState<Array<FieldValue>>(initialFieldValues);
+    useState<Array<FieldValue>>([]);
   const [currentInputRow, setCurrentInputRow] = useState(0);
   const [submited, setSubmited] = useState(false);
 
-  const rightWordWithoutUsedLetters = useRef(rightWord);
+  const rightWordWithoutUsedLetters = useRef("");
 
   function handleClickButton() {
     setFieldColorByRightWord();
@@ -34,17 +34,17 @@ export default function Home() {
   }
 
   function setFieldColorByRightWord() {
-    const word = fieldsValues
+    const typedWord = fieldsValues
       .map((iv: FieldValue) => iv.value)
       .join("")
       .toUpperCase();
 
     const fieldsValuesWithRightAndWrongLettersChecked =
-      getFieldsValuesCheckedUsingRightWord(word);
+      getFieldsValuesCheckedUsingRightWord(typedWord);
 
     const fieldsValuesWithRemainigLettersChecked =
       getFieldsValuesWithRemainingLettersChecked(
-        word,
+        typedWord,
         fieldsValuesWithRightAndWrongLettersChecked
       );
 
@@ -57,8 +57,8 @@ export default function Home() {
         rightWordWithoutUsedLetters.current =
           rightWordWithoutUsedLetters.current?.replace(rightWord[i], "");
 
-        return { backgroundColor: "#6aa84f", value: v.value };
-      } else return { backgroundColor: "#bf2d23", value: v.value };
+        return { backgroundColor: RIGHT_FIELD_COLOR, value: v.value };
+      } else return { backgroundColor: WRONG_FIELD_COLOR, value: v.value };
     });
   }
 
@@ -67,10 +67,26 @@ export default function Home() {
     fieldsValues: Array<FieldValue>
   ) {
     return fieldsValues.map((v, i) => {
-      if (rightWordWithoutUsedLetters.current?.includes(typedWord[i])) {
-        return { backgroundColor: "#ffd249", value: v.value };
+      if (
+        rightWordWithoutUsedLetters.current?.includes(typedWord[i]) &&
+        fieldsValues[i].backgroundColor !== RIGHT_FIELD_COLOR
+      ) {
+        return { backgroundColor: INCLUDES_LETTER_COLOR, value: v.value };
       } else return { backgroundColor: v.backgroundColor, value: v.value };
     });
+  }
+
+  const loadRightWord = () => {
+    const randomIndex = getRandomIndex(0, words.length - 1)
+    setRightWord(words[randomIndex].toUpperCase())
+    rightWordWithoutUsedLetters.current = words[randomIndex].toUpperCase()
+    setFieldsValues(new Array(words[randomIndex].length).fill(null).map((_) => {
+      return { backgroundColor: DEFAULT_FIELD_COLOR, value: "" };
+    }))
+  }
+
+  function getRandomIndex(min: number, max: number) {
+    return Math.floor(Math.random() * (max - min) + min);
   }
 
   useEffect(() => {
@@ -80,6 +96,10 @@ export default function Home() {
       setSubmited(false);
     }
   }, [submited]);
+
+  useEffect(() => {
+    loadRightWord()
+  }, [])
 
   return (
     <div className={styles.container}>
@@ -94,7 +114,7 @@ export default function Home() {
         values={fieldsValues}
         onChangeFieldValue={setFieldsValues}
         fieldsPerRow={rightWord.length}
-        numOfRows={5}
+        numOfRows={rightWord.length}
       />
       <div className={styles.buttonWrapper}>
         <button onClick={handleClickButton}>Confirmar</button>
