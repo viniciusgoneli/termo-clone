@@ -42,18 +42,23 @@ export default function FieldsRow({
         "input-" + (currentFieldIndex - 1)
       );
       previousField?.focus();
-    } else if (event.key.match(/[A-Za-z]/) && event.key.length === 1) {
+    } else if (
+      event.key.toUpperCase().match(/^[A-ZÁÀÂÃÉÈÊÍÌÏÓÔÕÖÚÑ ]+$/) &&
+      event.key.length === 1 &&
+      event.key !== " "
+    ) {
+      const keyUpperCase = event.key.toUpperCase();
       const nextField = document.getElementById(
         "input-" + (currentFieldIndex + 1)
       );
 
       if (values[currentFieldIndex - firstFieldOfRowIndex]?.value === "") {
-        changeFieldValue(currentFieldIndex, event.key);
+        changeFieldValue(currentFieldIndex, keyUpperCase);
         nextField?.focus();
         return;
       }
       nextField?.focus();
-      changeFieldValue(currentFieldIndex + 1, event.key);
+      changeFieldValue(currentFieldIndex + 1, keyUpperCase);
     }
   }
 
@@ -80,25 +85,23 @@ export default function FieldsRow({
 
   return (
     <div className={styles.container}>
-      <form>
-        {new Array(numOfFields).fill(null).map((_, i) => {
-          return (
-            <div
-              key={i}
-              style={{ backgroundColor: _value[i]?.backgroundColor }}
-              className={styles.inputWrapper}
-            >
-              <input
-                disabled={disabled}
-                value={_value[i]?.value}
-                onKeyDown={handleKeyDown}
-                id={"input-" + (i + rowIndex * numOfFields)}
-                maxLength={1}
-              />
-            </div>
-          );
-        })}
-      </form>
+      {new Array(numOfFields).fill(null).map((_, i) => {
+        return (
+          <div
+            key={i}
+            style={{ backgroundColor: _value[i]?.backgroundColor }}
+            className={styles.inputWrapper}
+          >
+            <input
+              disabled={disabled}
+              value={_value[i]?.value}
+              onKeyDown={handleKeyDown}
+              id={"input-" + (i + rowIndex * numOfFields)}
+              maxLength={1}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }

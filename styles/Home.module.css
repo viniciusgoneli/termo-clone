@@ -1,10 +1,42 @@
 .container {
-  padding: 0 0rem;
+  padding: 5rem 2rem;
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 50px;
+  justify-content: center;
 }
 
 .title {
   text-align: center;
-  margin-bottom: 50px;
+  font-size: 5rem;
+}
+
+.wrongWordsTitle {
+  text-align: center;
+  font-size: 3rem;
+  color: red;
+  margin-bottom: 20px;
+}
+
+.wrongWordsWrapper {
+  background-color: gray;
+  height: 60px;
+  width: 50%;
+  margin: 0 auto;
+  margin-bottom: 30px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  padding: 0 2rem;
+}
+
+.wrongWordsWrapper p {
+  color: red;
+  font-size: 3rem;
+  margin-right: 20px;
 }
 
 .buttonWrapper {
@@ -21,30 +53,10 @@
   background-color: blueviolet;
   text-align: center;
   text-transform: uppercase;
-  font-family: "Arial";
   border-radius: 10px;
+  font-size: 2rem;
 }
 
 .buttonWrapper button:hover {
   cursor: pointer;
-}
-
-@media (max-width: 600px) {
-  .grid {
-    width: 100%;
-    flex-direction: column;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .card,
-  .footer {
-    border-color: #222;
-  }
-  .code {
-    background: #111;
-  }
-  .logo img {
-    filter: invert(1);
-  }
 }

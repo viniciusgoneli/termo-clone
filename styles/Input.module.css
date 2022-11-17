@@ -1,9 +1,6 @@
 .container {
     width: 100%;
     margin-bottom: 20px;
-}
-
-.container form {
     display: flex;
     justify-content: center;
     gap: 15px;
