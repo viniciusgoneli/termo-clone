@@ -12,7 +12,7 @@ import styles from "../../styles/Input.module.css";
 
 interface InputProps {
   values: Array<FieldValue>;
-  onChangeValue: (value: Array<FieldValue>) => void;
+  onChangeValue: (index: number, value: string) => void;
   disabled: boolean;
   numOfFields: number;
   currentRowIndex: number;
@@ -36,7 +36,7 @@ export default function FieldsRow({
     const currentFieldIndex = parseInt(thisFieldId.split("-")[1]);
 
     if (event.key === "Backspace") {
-      changeFieldValue(currentFieldIndex, "");
+      onChangeValue(currentFieldIndex, "");
 
       const previousField = document.getElementById(
         "input-" + (currentFieldIndex - 1)
@@ -53,23 +53,13 @@ export default function FieldsRow({
       );
 
       if (values[currentFieldIndex - firstFieldOfRowIndex]?.value === "") {
-        changeFieldValue(currentFieldIndex, keyUpperCase);
+        onChangeValue(currentFieldIndex, keyUpperCase);
         nextField?.focus();
         return;
       }
       nextField?.focus();
-      changeFieldValue(currentFieldIndex + 1, keyUpperCase);
+      onChangeValue(currentFieldIndex + 1, keyUpperCase);
     }
-  }
-
-  function changeFieldValue(fieldIndex: number, value: string) {
-    onChangeValue(
-      values.map((v, i) => {
-        if (i + firstFieldOfRowIndex === fieldIndex)
-          return { backgroundColor: "gray", value: value };
-        else return v;
-      })
-    );
   }
 
   useEffect(() => {
@@ -96,6 +86,7 @@ export default function FieldsRow({
               disabled={disabled}
               value={_value[i]?.value}
               onKeyDown={handleKeyDown}
+              style={{ color: _value[i]?.letterColor }}
               id={"input-" + (i + rowIndex * numOfFields)}
               maxLength={1}
             />

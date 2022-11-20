@@ -8,8 +8,8 @@ export default class WordService{
 
     private static _words: Array<string>
     
-    static getRandom(options?: Options){
-        this._words = options?.length ? words.filter(w => w.length === length) : words;
+    static getRandom(length: number){
+        this._words = length ? words.filter(w => w.length === length) : words;
         const randomIndex = this.getRandomIndex(0, this._words.length - 1)
         return this._words[randomIndex].toUpperCase()
     }

@@ -7,7 +7,7 @@ interface InputsBlockProps {
   numOfRows: number;
   values: Array<FieldValue>;
   currentRowIndex: number;
-  onChangeFieldValue: (values: Array<FieldValue>) => void;
+  onChangeFieldValue: (index: number, value: string) => void;
   fieldsPerRow: number;
 }
 

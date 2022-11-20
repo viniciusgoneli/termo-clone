@@ -1,171 +1,227 @@
 import Head from "next/head";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "../styles/Home.module.css";
 import FieldsRowsGroup from "../components/FieldsRowsGroup";
 import { words } from "../services/data/ptbr-words";
 import WordService from "../services/WordService";
+import VictoryModal from "../components/VictoryModal";
 
 export interface FieldValue {
+  letterColor: string;
   backgroundColor: string;
   value: string;
 }
 
 export default function Home() {
+  const DEFAULT_FONT_COLOR = "#fff";
   const DEFAULT_FIELD_COLOR = "gray";
   const RIGHT_FIELD_COLOR = "#6aa84f";
   const WRONG_FIELD_COLOR = "#bf2d23";
   const INCLUDES_LETTER_COLOR = "#ffd249";
+  const DEFAULT_FIELD_VALUE = {
+    letterColor: DEFAULT_FONT_COLOR,
+    backgroundColor: DEFAULT_FIELD_COLOR,
+    value: "",
+  };
 
   const [rightWord, setRightWord] = useState("");
-  const [wrongLetters, setWrongLetters] = useState("");
-
-  const initialFieldValues = new Array(rightWord.length).fill(null).map((_) => {
-    return { backgroundColor: DEFAULT_FIELD_COLOR, value: "" };
-  });
+  const [wrongLetters, setWrongLetters] = useState<Array<string>>([]);
+  const [rightLetters, setRightLetters] = useState<Array<string>>([]);
 
   const [fieldsValues, setFieldsValues] = useState<Array<FieldValue>>([]);
   const [currentInputRow, setCurrentInputRow] = useState(0);
   const [submited, setSubmited] = useState(false);
+  const [showVictoryModal, setShowVictoryModal] = useState(false);
 
-  const rightWordWithoutUsedLetters = useRef("");
+  function onChangeFieldValue(index: number, value: string) {
+    const fieldIndex = index - rightWord.length * currentInputRow;
+
+    const letterColor =
+      rightLetters[fieldIndex] === value &&
+      rightLetters.find((v) => v === value)
+        ? RIGHT_FIELD_COLOR
+        : wrongLetters.find((v) => v === value)
+        ? WRONG_FIELD_COLOR
+        : "white";
+
+    setFieldsValues(
+      fieldsValues.map((v, i) => {
+        if (i === fieldIndex) {
+          return { ...v, letterColor, value };
+        }
+        return v;
+      })
+    );
+  }
 
   function handleSubmit(event: any) {
     event.preventDefault();
     if (fieldsValues.find((v) => v.value === "")) {
       return;
     }
-    const word = fieldsValues.map((v) => v.value).join("");
-    console.log("PALAVRA: " + word.toLowerCase());
-    if (!WordService.checkIfExists(word.toLowerCase())) return;
+    const transformedFieldValues = transformFieldsUsingRightWord();
+    const word = transformedFieldValues.map((v) => v.value).join("");
 
-    console.log("PALAVRA CERTA: " + rightWord);
-    setFieldColorByRightWord();
+    if (!WordService.checkIfExists(word.toLowerCase())) return;
+    if(transformedFieldValues.map(v => v.value).join("") === rightWord){
+      setShowVictoryModal(true)
+    }
+
+    const _wrongLetters = getWrongLetters(transformedFieldValues);
+    setWrongLetters(wrongLetters.concat(_wrongLetters));
+
+    const _rightLetters = getRightLetters(transformedFieldValues);
+    setRightLetters(_rightLetters);
+
     setSubmited(true);
+    setFieldsValues(transformedFieldValues);
   }
 
-  function setFieldColorByRightWord() {
-    const fieldValuesConvertedToAccentedWords =
+  function getWrongLetters(fieldsValues: Array<FieldValue>) {
+    return fieldsValues
+      .filter((v, i) => {
+        return !rightWord.includes(v.value);
+      })
+      .map((v) => v.value);
+  }
+
+  function getRightLetters(fieldsValues: Array<FieldValue>) {
+    return fieldsValues.map((v, i) => {
+      if (v.value === rightWord[i] && !rightLetters[i]) {
+        return v.value;
+      }
+      return rightLetters[i];
+    });
+  }
+
+  function transformFieldsUsingRightWord() {
+    const fieldValuesWithAccentedWords =
       getFieldValuesConvertedToAccentedWords();
 
-    const fieldsValuesWithRightAndWrongLettersChecked = getRightFieldsValues(
-      fieldValuesConvertedToAccentedWords
+    const fieldsValuesWithRightAndWrongLettersColored =
+      getFieldsValuesWithRightLettersColored(fieldValuesWithAccentedWords);
+
+    return getFieldsValuesWithIncludeLettersChecked(
+      fieldsValuesWithRightAndWrongLettersColored
     );
-
-    const fieldsValuesWithRemainigLettersChecked =
-      getFieldsValuesWithRemainingLettersChecked(
-        fieldsValuesWithRightAndWrongLettersChecked
-      );
-
-    setFieldsValues(fieldsValuesWithRemainigLettersChecked);
   }
 
   function getFieldValuesConvertedToAccentedWords() {
     return fieldsValues.map((v, i) => {
-      if (v.value === "A" && rightWord[i].match(/[ÁÀÂÃ]/)) {
-        return { backgroundColor: v.backgroundColor, value: rightWord[i] };
-      } else if (v.value === "E" && rightWord[i].match(/[ÉÈÊ]/)) {
-        return { backgroundColor: v.backgroundColor, value: rightWord[i] };
-      } else if (v.value === "I" && rightWord[i].match(/[ÍÏÌ]/)) {
-        return { backgroundColor: v.backgroundColor, value: rightWord[i] };
-      } else if (v.value === "O" && rightWord[i].match(/[ÕÔÓÒ]/)) {
-        return { backgroundColor: v.backgroundColor, value: rightWord[i] };
-      } else if (v.value === "U" && rightWord[i].match(/[ÚÙÛ]/)) {
-        return { backgroundColor: v.backgroundColor, value: rightWord[i] };
-      } else return { backgroundColor: v.backgroundColor, value: v.value };
-    });
-  }
-
-  function getRightFieldsValues(currentFieldsValues: Array<FieldValue>) {
-    return currentFieldsValues.map((v, i) => {
-      if (v.value === rightWord[i]) {
-        rightWordWithoutUsedLetters.current =
-          rightWordWithoutUsedLetters.current?.replace(rightWord[i], "");
-
-        return { backgroundColor: RIGHT_FIELD_COLOR, value: rightWord[i] };
+      if (
+        (v.value === "A" && rightWord[i].match(/[ÁÀÂÃ]/)) ||
+        (v.value === "E" && rightWord[i].match(/[ÉÈÊ]/)) ||
+        (v.value === "I" && rightWord[i].match(/[ÍÏÌ]/)) ||
+        (v.value === "O" && rightWord[i].match(/[ÕÔÓÒ]/)) ||
+        (v.value === "U" && rightWord[i].match(/[ÚÙÛ]/))
+      ) {
+        console.log("RC: " + v.value);
+        return { ...v, value: rightWord[i] };
       }
-      return { backgroundColor: v.backgroundColor, value: v.value };
+      return v;
     });
   }
 
-  function getFieldsValuesWithRemainingLettersChecked(
+  function getFieldsValuesWithRightLettersColored(
     currentFieldsValues: Array<FieldValue>
   ) {
-    let tempRightWordWithoutUsedLetters = rightWordWithoutUsedLetters.current;
-    let wrongLetters = "";
-    const newValues = currentFieldsValues.map((v, i) => {
-      if(v.backgroundColor === RIGHT_FIELD_COLOR){
-        return { backgroundColor: v.backgroundColor, value: v.value };
+    const values = currentFieldsValues.map((v, i) => {
+      if (v.value === rightWord[i]) {
+        return {
+          ...v,
+          backgroundColor: RIGHT_FIELD_COLOR,
+          value: rightWord[i],
+        };
       }
-      else if (
-        v.backgroundColor !== RIGHT_FIELD_COLOR &&
-        tempRightWordWithoutUsedLetters.includes(v.value)
-      ) {
-        tempRightWordWithoutUsedLetters =
-          tempRightWordWithoutUsedLetters.replace(v.value, "");
-
-        return { backgroundColor: INCLUDES_LETTER_COLOR, value: v.value };
-      }
-      if (!wrongLetters.includes(v.value)) wrongLetters += v.value;
-
-      return { backgroundColor: WRONG_FIELD_COLOR, value: v.value };
+      return v;
     });
-    setWrongLetters(wrongLetters);
+
+    return values;
+  }
+
+  function getFieldsValuesWithIncludeLettersChecked(
+    currentFieldsValues: Array<FieldValue>
+  ) {
+    const tempRightWord = rightWord.split("").filter((l, i) => {
+      return l !== fieldsValues[i].value;
+    });
+
+    const newValues = currentFieldsValues.map((v, i) => {
+      if (v.value === rightWord[i]) {
+        return v;
+      } else if (tempRightWord.includes(v.value)) {
+        tempRightWord.splice(tempRightWord.indexOf(v.value), 1);
+        return { ...v, backgroundColor: INCLUDES_LETTER_COLOR };
+      }
+      return { ...v, backgroundColor: WRONG_FIELD_COLOR };
+    });
 
     return newValues;
   }
 
-  const loadRightWord = () => {
-    const randomWord = WordService.getRandom();
+  const startNewGame = () => {
+    const randomWord = WordService.getRandom(5);
 
+    setShowVictoryModal(false)
+    setCurrentInputRow(0);
     setRightWord(randomWord);
-    rightWordWithoutUsedLetters.current = randomWord;
+    console.log("PALAVRA CERTA: " + randomWord);
+    setWrongLetters([]);
+    setRightLetters(Array(randomWord.length).fill(""));
     setFieldsValues(
-      new Array(randomWord.length).fill(null).map((_) => {
-        return { backgroundColor: DEFAULT_FIELD_COLOR, value: "" };
-      })
+      Array(randomWord.length)
+        .fill(null)
+        .map((_) => DEFAULT_FIELD_VALUE)
     );
   };
 
   useEffect(() => {
     if (submited) {
       setCurrentInputRow(currentInputRow + 1);
-      setFieldsValues(initialFieldValues);
+      setFieldsValues(
+        Array(rightWord.length)
+          .fill(null)
+          .map((_) => DEFAULT_FIELD_VALUE)
+      );
       setSubmited(false);
     }
   }, [submited]);
 
   useEffect(() => {
-    loadRightWord();
+    startNewGame();
   }, []);
 
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>Termo</title>
-        <meta name="description" content="Termo clone" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <header className={styles.header}>
-        <h1 className={styles.title}>TERMO</h1>
-      </header>
-      <h4 className={styles.wrongWordsTitle}>WRONG LETTERS</h4>
-      <div className={styles.wrongWordsWrapper}>
-        {wrongLetters.split("").map((l, i) => {
-          return <p key={i}>{l}</p>;
-        })}
+    <>
+      <div className={styles.container}>
+        {showVictoryModal ? (
+          <VictoryModal
+            rightWord={rightWord}
+            onClickReplayButton={startNewGame}
+          />
+        ) : null}
+
+        <Head>
+          <title>Termo</title>
+          <meta name="description" content="Termo clone" />
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
+        <header className={styles.header}>
+          {/*<h1 className={styles.title}>TERMO</h1>*/}
+        </header>
+        <form onSubmit={handleSubmit}>
+          <FieldsRowsGroup
+            currentRowIndex={currentInputRow}
+            values={fieldsValues}
+            onChangeFieldValue={onChangeFieldValue}
+            fieldsPerRow={rightWord.length}
+            numOfRows={rightWord.length}
+          />
+          <div className={styles.buttonWrapper}>
+            <button onClick={handleSubmit}>Confirmar</button>
+          </div>
+        </form>
       </div>
-      <form onSubmit={handleSubmit}>
-        <FieldsRowsGroup
-          currentRowIndex={currentInputRow}
-          values={fieldsValues}
-          onChangeFieldValue={setFieldsValues}
-          fieldsPerRow={rightWord.length}
-          numOfRows={rightWord.length}
-        />
-        <div className={styles.buttonWrapper}>
-          <button onClick={handleSubmit}>Confirmar</button>
-        </div>
-      </form>
-    </div>
+    </>
   );
 }

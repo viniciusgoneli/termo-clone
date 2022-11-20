@@ -1,5 +1,6 @@
 .container {
   padding: 5rem 2rem;
+  position: relative;
 }
 
 .header {
@@ -12,6 +13,8 @@
 .title {
   text-align: center;
   font-size: 5rem;
+  color: royalblue;
+  font-weight: 900;
 }
 
 .wrongWordsTitle {
